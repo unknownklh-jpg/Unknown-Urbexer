@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="header">
+    <h1>Admin Panel</h1>
+</header>
+
+<section class="posts admin-section">
+
+    <div id="login-box">
+        <h2>Admin Login</h2>
+        <input type="password" id="admin-password" placeholder="Enter password" />
+        <button id="login-btn">Login</button>
+        <p id="login-error"></p>
+    </div>
+
+    <div id="admin-area" style="display:none;">
+
+        <!-- Add Post Section -->
+        <h2>Add New Post</h2>
+        <input id="post-title" placeholder="Post Title" />
+        <input id="post-date" placeholder="Date (e.g. Dec 7 2025)" />
+        <textarea id="post-content" placeholder="Post Content"></textarea>
+        <button id="save-post">Save Post</button>
+
+        <h2>Existing Posts</h2>
+        <ul id="post-list"></ul>
+
+        <!-- JSON Export/Import -->
+        <h2>Backup / Restore</h2>
+
+        <button id="export-posts">Export Posts to JSON</button>
+        <br><br>
+
+        <input type="file" id="import-file" accept=".json" />
+        <button id="import-posts">Import from JSON</button>
+
+        <p id="import-status"></p>
+
+    </div>
+
+</section>
+
+<footer class="footer">
+    <p>© 2025 Urban Explorer Log</p>
+</footer>
+
+<script src="admin.js"></script>
+</body>
+</html>
