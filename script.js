@@ -1,5 +1,5 @@
-// script.js - public site loads posts from backend
-const API_BASE = '';https://unknown-urbexer.onrender.com
+// script.js - public site loads posts from Render backend
+const API_BASE = 'https://unknown-urbexer.onrender.com'; // <-- replace with your Render backend URL
 
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("public-posts");
@@ -8,8 +8,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = 'Loading posts...';
 
     try {
-        const res = await fetch(API_BASE + '/api/posts');
-        if (!res.ok) throw new Error('Failed to fetch posts');
+        const res = await fetch(`${API_BASE}/api/posts`);
+        if (!res.ok) throw new Error(`Failed to fetch posts: ${res.status} ${res.statusText}`);
         const posts = await res.json();
 
         if (!Array.isArray(posts) || posts.length === 0) {
@@ -30,11 +30,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             container.appendChild(div);
         });
     } catch (err) {
-        console.error(err);
-        container.innerHTML = '<p>Error loading posts.</p>';
+        console.error('Error loading posts:', err);
+        container.innerHTML = '<p>Error loading posts. Please try again later.</p>';
     }
 });
 
+// Utility to escape HTML
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/[&<>"']/g, s => {
@@ -42,4 +43,5 @@ function escapeHtml(str) {
         return map[s] || s;
     });
 }
+
 
