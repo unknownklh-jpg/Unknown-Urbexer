@@ -1,264 +1,174 @@
-// admin.js - talks to backend APIs
-const API_BASE = 'https://unknown-urbexer.onrender.com';
-const loginBox = document.getElementById("login-box");
-const adminArea = document.getElementById("admin-area");
-const loginBtn = document.getElementById("login-btn");
-const loginError = document.getElementById("login-error");
-const saveBtn = document.getElementById("save-post");
+// admin.js
+const API_BASE = 'https://unknown-urbexer.onrender.com'; // Replace with your Render backend URL
+const ADMIN_PASSWORD = 'explore2025'; // Replace with your admin password
 
-// check existing token
-function getToken() {
-    return localStorage.getItem('adminToken') || null;
-}
+// DOM Elements
+const loginBox = document.getElementById('login-box');
+const loginBtn = document.getElementById('login-btn');
+const loginError = document.getElementById('login-error');
+const adminArea = document.getElementById('admin-area');
 
-function authFetch(url, opts = {}) {
-    const token = getToken();
-    opts.headers = opts.headers || {};
-    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
-    return fetch(API_BASE + url, opts);
-}
+const postTitle = document.getElementById('post-title');
+const postDate = document.getElementById('post-date');
+const postContent = document.getElementById('post-content');
+const savePostBtn = document.getElementById('save-post');
+const postList = document.getElementById('post-list');
 
-/* -------------------------------
-   LOGIN
-   ------------------------------- */
+const exportBtn = document.getElementById('export-posts');
+const importInput = document.getElementById('import-file');
+const importBtn = document.getElementById('import-posts');
+const importStatus = document.getElementById('import-status');
 
-loginBtn.addEventListener("click", async () => {
-    const pass = document.getElementById("admin-password").value;
-    try {
-        const res = await fetch(API_BASE + '/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: pass })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            loginError.textContent = data.error || 'Login failed';
-            return;
-        }
-        localStorage.setItem('adminToken', data.token);
-        loginBox.style.display = "none";
-        adminArea.style.display = "block";
+let posts = [];
+let editingIndex = null; // Track which post is being edited
+
+// --- Admin Login ---
+loginBtn.addEventListener('click', () => {
+    const pw = document.getElementById('admin-password').value;
+    if (pw === ADMIN_PASSWORD) {
+        loginBox.style.display = 'none';
+        adminArea.style.display = 'block';
         loadPosts();
-    } catch (err) {
-        loginError.textContent = 'Network error';
-        console.error(err);
+    } else {
+        loginError.textContent = 'Incorrect password.';
     }
 });
 
-/* -------------------------------
-   LOAD POSTS TO ADMIN LIST
-   ------------------------------- */
-
+// --- Load posts from backend ---
 async function loadPosts() {
-    const list = document.getElementById("post-list");
-    list.innerHTML = "Loading...";
-
     try {
-        const res = await fetch(API_BASE + '/api/posts');
-        const posts = await res.json();
-        list.innerHTML = "";
-
-        if (!Array.isArray(posts) || posts.length === 0) {
-            list.innerHTML = '<li>No posts yet.</li>';
-            return;
-        }
-
-        posts.forEach((post, index) => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-                <span>${index + 1}. ${escapeHtml(post.title)}</span>
-                <span class="post-buttons">
-                    <button class="edit-btn" data-id="${post.id}">Edit</button>
-                    <button class="delete-btn" data-id="${post.id}">Delete</button>
-                </span>
-            `;
-            list.appendChild(li);
-        });
-
-        // events
-        document.querySelectorAll(".delete-btn").forEach(btn =>
-            btn.addEventListener("click", deletePost)
-        );
-
-        document.querySelectorAll(".edit-btn").forEach(btn =>
-            btn.addEventListener("click", editPost)
-        );
-
+        const res = await fetch(`${API_BASE}/api/posts`);
+        if (!res.ok) throw new Error('Failed to fetch posts from backend');
+        posts = await res.json();
+        renderPostList();
     } catch (err) {
         console.error(err);
-        list.innerHTML = '<li>Error loading posts.</li>';
+        posts = [];
+        renderPostList();
     }
 }
 
-/* -------------------------------
-   CREATE / UPDATE logic
-   ------------------------------- */
-
-function clearForm() {
-    document.getElementById("post-title").value = "";
-    document.getElementById("post-date").value = "";
-    document.getElementById("post-content").value = "";
+// --- Render posts in admin ---
+function renderPostList() {
+    postList.innerHTML = '';
+    posts.forEach((post, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span>${post.title} (${post.date})</span>
+            <div class="post-buttons">
+                <button onclick="editPost(${index})">Edit</button>
+                <button onclick="deletePost(${index})">Delete</button>
+            </div>
+        `;
+        postList.appendChild(li);
+    });
 }
 
-document.getElementById("save-post").addEventListener("click", async () => {
-    const title = document.getElementById("post-title").value.trim();
-    const date = document.getElementById("post-date").value.trim();
-    const content = document.getElementById("post-content").value.trim();
+// --- Save Post (Add or Edit) ---
+savePostBtn.addEventListener('click', async () => {
+    const title = postTitle.value.trim();
+    const date = postDate.value;
+    const content = postContent.value.trim();
+    if (!title || !content || !date) return alert('Fill all fields.');
 
-    if (!title || !date || !content) {
-        alert("All fields are required!");
-        return;
-    }
-
-    const editId = saveBtn.dataset.editId;
     try {
-        if (editId) {
-            // update
-            const res = await authFetch('/api/posts/' + editId, {
-                method: 'PUT',
+        let res;
+        if (editingIndex !== null) {
+            // Update existing post
+            posts[editingIndex] = { title, date, content };
+            res = await fetch(`${API_BASE}/api/posts/update`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, date, content })
+                body: JSON.stringify({ posts })
             });
-            if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
-            alert('Post updated');
-            delete saveBtn.dataset.editId;
-            saveBtn.textContent = 'Save Post';
+            editingIndex = null;
         } else {
-            // create
-            const res = await authFetch('/api/posts', {
+            // Add new post
+            res = await fetch(`${API_BASE}/api/posts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title, date, content })
             });
-            if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
-            alert('Post created');
         }
-        clearForm();
-        loadPosts();
+
+        const data = await res.json();
+        if (data.success) {
+            posts = data.posts;
+            renderPostList();
+            postTitle.value = '';
+            postDate.value = '';
+            postContent.value = '';
+            alert('Post saved!');
+        } else {
+            alert('Failed to save post.');
+        }
     } catch (err) {
-        alert('Error: ' + err.message);
         console.error(err);
+        alert('Error saving post.');
     }
 });
 
-/* -------------------------------
-   DELETE
-   ------------------------------- */
+// --- Edit Post ---
+window.editPost = (index) => {
+    const post = posts[index];
+    postTitle.value = post.title;
+    postDate.value = post.date;
+    postContent.value = post.content;
+    editingIndex = index;
+};
 
-async function deletePost(e) {
-    const id = e.target.dataset.id;
-    if (!confirm('Delete this post?')) return;
+// --- Delete Post ---
+window.deletePost = async (index) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+
+    posts.splice(index, 1); // remove locally
 
     try {
-        const res = await authFetch('/api/posts/' + id, { method: 'DELETE' });
-        if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
-        alert('Deleted');
-        loadPosts();
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-}
-
-/* -------------------------------
-   EDIT
-   ------------------------------- */
-
-async function editPost(e) {
-    const id = e.target.dataset.id;
-    try {
-        const res = await fetch(API_BASE + '/api/posts');
-        const posts = await res.json();
-        const post = posts.find(p => p.id === id);
-        if (!post) { alert('Post not found'); return; }
-
-        document.getElementById("post-title").value = post.title;
-        document.getElementById("post-date").value = post.date;
-        document.getElementById("post-content").value = post.content;
-
-        saveBtn.textContent = 'Update Post';
-        saveBtn.dataset.editId = id;
-    } catch (err) {
-        console.error(err);
-        alert('Error fetching post');
-    }
-}
-
-/* -------------------------------
-   EXPORT (download)
-   ------------------------------- */
-
-document.getElementById("export-posts").addEventListener("click", async () => {
-    try {
-        const res = await authFetch('/api/export');
-        if (!res.ok) throw new Error('Export failed');
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'urbanPosts_backup.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    } catch (err) {
-        alert('Error exporting: ' + err.message);
-    }
-});
-
-/* -------------------------------
-   IMPORT (upload file and send to backend)
-   ------------------------------- */
-
-document.getElementById("import-posts").addEventListener("click", async () => {
-    const fileInput = document.getElementById("import-file");
-    const status = document.getElementById("import-status");
-
-    if (!fileInput.files[0]) {
-        status.textContent = "❗ No file selected.";
-        status.style.color = "#ff1a1a";
-        return;
-    }
-
-    const file = fileInput.files[0];
-    try {
-        const text = await file.text();
-        const json = JSON.parse(text);
-
-        const res = await authFetch('/api/import', {
+        const res = await fetch(`${API_BASE}/api/posts/delete`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(json)
+            body: JSON.stringify({ posts })
         });
-
-        const body = await res.json();
-        if (!res.ok) throw new Error(body.error || 'Import failed');
-
-        status.textContent = `✔️ Imported ${body.imported} posts.`;
-        status.style.color = '#00cc88';
-        loadPosts();
+        const data = await res.json();
+        if (data.success) {
+            renderPostList();
+        } else {
+            alert('Failed to delete post.');
+        }
     } catch (err) {
-        status.textContent = '❗ Import failed: ' + err.message;
-        status.style.color = '#ff1a1a';
+        console.error(err);
+        alert('Error deleting post.');
     }
+};
+
+// --- Export posts to JSON ---
+exportBtn.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(posts, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'posts.json';
+    a.click();
+    URL.revokeObjectURL(url);
 });
 
-/* -------------------------------
-   UTILS
-   ------------------------------- */
+// --- Import posts from JSON ---
+importBtn.addEventListener('click', () => {
+    const file = importInput.files[0];
+    if (!file) return;
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>"']/g, s => {
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-        return map[s] || s;
-    });
-}
-
-// On page load: if token present, skip login box
-document.addEventListener('DOMContentLoaded', () => {
-    if (getToken()) {
-        loginBox.style.display = 'none';
-        adminArea.style.display = 'block';
-        loadPosts();
-    }
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const importedPosts = JSON.parse(reader.result);
+            if (!Array.isArray(importedPosts)) throw new Error('Invalid JSON');
+            posts = importedPosts;
+            renderPostList();
+            importStatus.textContent = 'Posts imported successfully!';
+        } catch (err) {
+            console.error(err);
+            importStatus.textContent = 'Failed to import posts.';
+        }
+    };
+    reader.readAsText(file);
 });
-
-
