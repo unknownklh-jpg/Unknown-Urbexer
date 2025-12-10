@@ -10,31 +10,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const POSTS_FILE = path.join(__dirname, 'posts.json');
 
-// --- Middleware ---
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public')); // serve post.html, admin.html, etc.
+app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const upload = multer({ dest: 'uploads/' }); // images folder
+// --- Setup image uploads ---
+const upload = multer({ dest: 'uploads/' });
 
-// --- Helper to read posts ---
+// --- Helper functions ---
 function readPosts() {
     try {
         const data = fs.readFileSync(POSTS_FILE, 'utf8');
         return JSON.parse(data);
-    } catch (e) {
+    } catch {
         return [];
     }
 }
 
-// --- Helper to save posts ---
 function savePosts(posts) {
     fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 4));
 }
 
 // --- Simple admin auth ---
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const TOKENS = new Set(); // simple in-memory tokens
+const TOKENS = new Set();
 
 function generateToken() {
     const t = uuidv4();
@@ -62,8 +62,7 @@ app.post('/api/login', (req, res) => {
 
 // --- Get all posts ---
 app.get('/api/posts', (req, res) => {
-    const posts = readPosts();
-    res.json(posts);
+    res.json(readPosts());
 });
 
 // --- Create new post ---
@@ -83,7 +82,7 @@ app.post('/api/posts', authMiddleware, upload.array('images'), (req, res) => {
         images
     };
 
-    posts.push(newPost);
+    posts.push(newPost); // append new post
     savePosts(posts);
 
     res.json({ success: true, post: newPost });
@@ -93,6 +92,7 @@ app.post('/api/posts', authMiddleware, upload.array('images'), (req, res) => {
 app.put('/api/posts/:id', authMiddleware, (req, res) => {
     const { id } = req.params;
     const { title, date, content } = req.body;
+
     const posts = readPosts();
     const index = posts.findIndex(p => p.id === id);
     if (index === -1) return res.status(404).json({ success: false, error: 'Post not found' });
@@ -107,11 +107,11 @@ app.put('/api/posts/:id', authMiddleware, (req, res) => {
 
 // --- Delete post ---
 app.delete('/api/posts/:id', authMiddleware, (req, res) => {
-    const { id } = req.params;
     let posts = readPosts();
     const initialLength = posts.length;
-    posts = posts.filter(p => p.id !== id);
+    posts = posts.filter(p => p.id !== req.params.id);
     savePosts(posts);
+
     if (posts.length === initialLength) return res.status(404).json({ success: false, error: 'Post not found' });
     res.json({ success: true });
 });
@@ -128,9 +128,6 @@ app.post('/api/import', authMiddleware, (req, res) => {
     savePosts(imported);
     res.json({ success: true, imported: imported.length });
 });
-
-// --- Serve uploaded images ---
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- Start server ---
 app.listen(PORT, () => {
