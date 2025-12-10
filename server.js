@@ -225,3 +225,13 @@ if (fs.existsSync(publicDir)) {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
+const cors = require("cors");
+
+app.use(cors({
+    origin: [
+        "https://unknownklh-jpg.github.io",
+        "https://unknownurbexer.blog"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
