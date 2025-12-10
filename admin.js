@@ -1,5 +1,5 @@
 // admin.js - talks to backend APIs
-const API_BASE = ''; // If server serves frontend, keep empty; otherwise set full URL like 'http://localhost:3000'
+const API_BASE = 'https://unknown-urbexer.onrender.com';
 const loginBox = document.getElementById("login-box");
 const adminArea = document.getElementById("admin-area");
 const loginBtn = document.getElementById("login-btn");
@@ -260,4 +260,5 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPosts();
     }
 });
+
 
