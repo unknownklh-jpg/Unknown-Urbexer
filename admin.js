@@ -1,9 +1,13 @@
-const PASSWORD = "explore2025"; // Change this to your preferred password
+const PASSWORD = "explore2025"; // Change this if needed
 
 const loginBox = document.getElementById("login-box");
 const adminArea = document.getElementById("admin-area");
 const loginBtn = document.getElementById("login-btn");
 const loginError = document.getElementById("login-error");
+
+/* ------------------------------- */
+/*            LOGIN SYSTEM         */
+/* ------------------------------- */
 
 loginBtn.addEventListener("click", () => {
     const pass = document.getElementById("admin-password").value;
@@ -16,7 +20,10 @@ loginBtn.addEventListener("click", () => {
     }
 });
 
-// Load posts into admin list
+/* ------------------------------- */
+/*      LOAD POSTS + BUTTONS       */
+/* ------------------------------- */
+
 function loadPosts() {
     const list = document.getElementById("post-list");
     list.innerHTML = "";
@@ -25,12 +32,66 @@ function loadPosts() {
 
     posts.forEach((post, index) => {
         const li = document.createElement("li");
-        li.textContent = `${index + 1}. ${post.title}`;
+
+        li.innerHTML = `
+            <span>${index + 1}. ${post.title}</span>
+            <span class="post-buttons">
+                <button class="edit-btn" data-index="${index}">Edit</button>
+                <button class="delete-btn" data-index="${index}">Delete</button>
+            </span>
+        `;
+
         list.appendChild(li);
     });
+
+    // Attach events
+    document.querySelectorAll(".delete-btn").forEach(btn =>
+        btn.addEventListener("click", deletePost)
+    );
+
+    document.querySelectorAll(".edit-btn").forEach(btn =>
+        btn.addEventListener("click", editPost)
+    );
 }
 
-// Save new post
+/* ------------------------------- */
+/*            DELETE POST          */
+/* ------------------------------- */
+
+function deletePost(e) {
+    const index = e.target.dataset.index;
+    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+
+    if (!confirm(`Delete post: "${posts[index].title}"?`)) return;
+
+    posts.splice(index, 1);
+    localStorage.setItem("urbanPosts", JSON.stringify(posts));
+    loadPosts();
+}
+
+/* ------------------------------- */
+/*            EDIT POST            */
+/* ------------------------------- */
+
+function editPost(e) {
+    const index = e.target.dataset.index;
+    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+    const post = posts[index];
+
+    // Fill form fields
+    document.getElementById("post-title").value = post.title;
+    document.getElementById("post-date").value = post.date;
+    document.getElementById("post-content").value = post.content;
+
+    const saveBtn = document.getElementById("save-post");
+    saveBtn.textContent = "Update Post";
+    saveBtn.dataset.editIndex = index;
+}
+
+/* ------------------------------- */
+/*     SAVE / UPDATE POST LOGIC    */
+/* ------------------------------- */
+
 document.getElementById("save-post").addEventListener("click", () => {
     const title = document.getElementById("post-title").value;
     const date = document.getElementById("post-date").value;
@@ -41,13 +102,27 @@ document.getElementById("save-post").addEventListener("click", () => {
         return;
     }
 
-    const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-    posts.unshift({ title, date, content });
+    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+    const saveBtn = document.getElementById("save-post");
+    const editIndex = saveBtn.dataset.editIndex;
+
+    if (editIndex !== undefined) {
+        // Update existing
+        posts[editIndex] = { title, date, content };
+        alert("Post updated!");
+
+        // Reset button state
+        saveBtn.textContent = "Save Post";
+        delete saveBtn.dataset.editIndex;
+    } else {
+        // Add new
+        posts.unshift({ title, date, content });
+        alert("Post added!");
+    }
 
     localStorage.setItem("urbanPosts", JSON.stringify(posts));
 
-    alert("Post added!");
-
+    // Clear the form
     document.getElementById("post-title").value = "";
     document.getElementById("post-date").value = "";
     document.getElementById("post-content").value = "";
@@ -56,13 +131,15 @@ document.getElementById("save-post").addEventListener("click", () => {
 });
 
 /* ------------------------------- */
-/*         JSON EXPORT              */
+/*          EXPORT POSTS           */
 /* ------------------------------- */
 
 document.getElementById("export-posts").addEventListener("click", () => {
     const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(posts, null, 4));
+    const dataStr = "data:text/json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(posts, null, 4));
+
     const dlAnchor = document.createElement("a");
 
     dlAnchor.setAttribute("href", dataStr);
@@ -71,7 +148,7 @@ document.getElementById("export-posts").addEventListener("click", () => {
 });
 
 /* ------------------------------- */
-/*         JSON IMPORT              */
+/*          IMPORT POSTS           */
 /* ------------------------------- */
 
 document.getElementById("import-posts").addEventListener("click", () => {
@@ -99,113 +176,13 @@ document.getElementById("import-posts").addEventListener("click", () => {
             status.textContent = "✔️ Import successful! Refresh to see changes.";
             status.style.color = "#00ff88";
 
-          // Load posts into admin list WITH edit/delete buttons
-function loadPosts() {
-    const list = document.getElementById("post-list");
-    list.innerHTML = "";
+            loadPosts();
+        } catch (err) {
+            status.textContent = "❗ Import failed: " + err.message;
+            status.style.color = "#ff1a1a";
+        }
+    };
 
-    const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-
-    posts.forEach((post, index) => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <span>${index + 1}. ${post.title}</span>
-            <span class="post-buttons">
-                <button class="edit-btn" data-index="${index}">Edit</button>
-                <button class="delete-btn" data-index="${index}">Delete</button>
-            </span>
-        `;
-
-        list.appendChild(li);
-    });
-
-    // Attach edit/delete events AFTER rendering
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.addEventListener("click", deletePost);
-    });
-
-    document.querySelectorAll(".edit-btn").forEach(btn => {
-        btn.addEventListener("click", editPost);
-    });
-}
-
-/* ------------------------------- */
-/*            DELETE POST          */
-/* ------------------------------- */
-
-function deletePost(e) {
-    const index = e.target.dataset.index;
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-
-    if (!confirm(`Delete post: "${posts[index].title}"?`)) {
-        return;
-    }
-
-    posts.splice(index, 1);
-    localStorage.setItem("urbanPosts", JSON.stringify(posts));
-
-    loadPosts();
-}
-
-/* ------------------------------- */
-/*            EDIT POST            */
-/* ------------------------------- */
-
-function editPost(e) {
-    const index = e.target.dataset.index;
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-    const post = posts[index];
-
-    // Fill form fields with post data
-    document.getElementById("post-title").value = post.title;
-    document.getElementById("post-date").value = post.date;
-    document.getElementById("post-content").value = post.content;
-
-    // Change SAVE POST button to UPDATE
-    const saveBtn = document.getElementById("save-post");
-    saveBtn.textContent = "Update Post";
-    saveBtn.dataset.editIndex = index; // store index being edited
-}
-
-/* ------------------------------- */
-/*     SAVE / UPDATE POST LOGIC    */
-/* ------------------------------- */
-
-document.getElementById("save-post").addEventListener("click", () => {
-    const title = document.getElementById("post-title").value;
-    const date = document.getElementById("post-date").value;
-    const content = document.getElementById("post-content").value;
-
-    if (!title || !date || !content) {
-        alert("All fields are required!");
-        return;
-    }
-
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-
-    const editIndex = document.getElementById("save-post").dataset.editIndex;
-
-    if (editIndex !== undefined) {
-        // Update existing post
-        posts[editIndex] = { title, date, content };
-        alert("Post updated!");
-
-        // Reset button
-        document.getElementById("save-post").textContent = "Save Post";
-        delete document.getElementById("save-post").dataset.editIndex;
-    } else {
-        // Create new post
-        posts.unshift({ title, date, content });
-        alert("Post added!");
-    }
-
-    localStorage.setItem("urbanPosts", JSON.stringify(posts));
-
-    // Clear form
-    document.getElementById("post-title").value = "";
-    document.getElementById("post-date").value = "";
-    document.getElementById("post-content").value = "";
-
-    loadPosts();
+    reader.readAsText(fileInput.files[0]);
 });
+
