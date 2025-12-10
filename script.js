@@ -1,5 +1,5 @@
 // script.js - public site loads posts from backend
-const API_BASE = ''; // same note: set to full URL if backend on separate host
+const API_BASE = '';https://unknown-urbexer.onrender.com
 
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("public-posts");
@@ -42,3 +42,4 @@ function escapeHtml(str) {
         return map[s] || s;
     });
 }
+
