@@ -1,157 +1,213 @@
-const PASSWORD = "explore2025"; // Change this if needed
-
+// admin.js - talks to backend APIs
+const API_BASE = ''; // If server serves frontend, keep empty; otherwise set full URL like 'http://localhost:3000'
 const loginBox = document.getElementById("login-box");
 const adminArea = document.getElementById("admin-area");
 const loginBtn = document.getElementById("login-btn");
 const loginError = document.getElementById("login-error");
+const saveBtn = document.getElementById("save-post");
 
-/* ------------------------------- */
-/*            LOGIN SYSTEM         */
-/* ------------------------------- */
+// check existing token
+function getToken() {
+    return localStorage.getItem('adminToken') || null;
+}
 
-loginBtn.addEventListener("click", () => {
+function authFetch(url, opts = {}) {
+    const token = getToken();
+    opts.headers = opts.headers || {};
+    if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+    return fetch(API_BASE + url, opts);
+}
+
+/* -------------------------------
+   LOGIN
+   ------------------------------- */
+
+loginBtn.addEventListener("click", async () => {
     const pass = document.getElementById("admin-password").value;
-    if (pass === PASSWORD) {
+    try {
+        const res = await fetch(API_BASE + '/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            loginError.textContent = data.error || 'Login failed';
+            return;
+        }
+        localStorage.setItem('adminToken', data.token);
         loginBox.style.display = "none";
         adminArea.style.display = "block";
         loadPosts();
-    } else {
-        loginError.textContent = "Incorrect password!";
+    } catch (err) {
+        loginError.textContent = 'Network error';
+        console.error(err);
     }
 });
 
-/* ------------------------------- */
-/*      LOAD POSTS + BUTTONS       */
-/* ------------------------------- */
+/* -------------------------------
+   LOAD POSTS TO ADMIN LIST
+   ------------------------------- */
 
-function loadPosts() {
+async function loadPosts() {
     const list = document.getElementById("post-list");
-    list.innerHTML = "";
+    list.innerHTML = "Loading...";
 
-    const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+    try {
+        const res = await fetch(API_BASE + '/api/posts');
+        const posts = await res.json();
+        list.innerHTML = "";
 
-    posts.forEach((post, index) => {
-        const li = document.createElement("li");
+        if (!Array.isArray(posts) || posts.length === 0) {
+            list.innerHTML = '<li>No posts yet.</li>';
+            return;
+        }
 
-        li.innerHTML = `
-            <span>${index + 1}. ${post.title}</span>
-            <span class="post-buttons">
-                <button class="edit-btn" data-index="${index}">Edit</button>
-                <button class="delete-btn" data-index="${index}">Delete</button>
-            </span>
-        `;
+        posts.forEach((post, index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <span>${index + 1}. ${escapeHtml(post.title)}</span>
+                <span class="post-buttons">
+                    <button class="edit-btn" data-id="${post.id}">Edit</button>
+                    <button class="delete-btn" data-id="${post.id}">Delete</button>
+                </span>
+            `;
+            list.appendChild(li);
+        });
 
-        list.appendChild(li);
-    });
+        // events
+        document.querySelectorAll(".delete-btn").forEach(btn =>
+            btn.addEventListener("click", deletePost)
+        );
 
-    // Attach events
-    document.querySelectorAll(".delete-btn").forEach(btn =>
-        btn.addEventListener("click", deletePost)
-    );
+        document.querySelectorAll(".edit-btn").forEach(btn =>
+            btn.addEventListener("click", editPost)
+        );
 
-    document.querySelectorAll(".edit-btn").forEach(btn =>
-        btn.addEventListener("click", editPost)
-    );
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = '<li>Error loading posts.</li>';
+    }
 }
 
-/* ------------------------------- */
-/*            DELETE POST          */
-/* ------------------------------- */
+/* -------------------------------
+   CREATE / UPDATE logic
+   ------------------------------- */
 
-function deletePost(e) {
-    const index = e.target.dataset.index;
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-
-    if (!confirm(`Delete post: "${posts[index].title}"?`)) return;
-
-    posts.splice(index, 1);
-    localStorage.setItem("urbanPosts", JSON.stringify(posts));
-    loadPosts();
+function clearForm() {
+    document.getElementById("post-title").value = "";
+    document.getElementById("post-date").value = "";
+    document.getElementById("post-content").value = "";
 }
 
-/* ------------------------------- */
-/*            EDIT POST            */
-/* ------------------------------- */
-
-function editPost(e) {
-    const index = e.target.dataset.index;
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-    const post = posts[index];
-
-    // Fill form fields
-    document.getElementById("post-title").value = post.title;
-    document.getElementById("post-date").value = post.date;
-    document.getElementById("post-content").value = post.content;
-
-    const saveBtn = document.getElementById("save-post");
-    saveBtn.textContent = "Update Post";
-    saveBtn.dataset.editIndex = index;
-}
-
-/* ------------------------------- */
-/*     SAVE / UPDATE POST LOGIC    */
-/* ------------------------------- */
-
-document.getElementById("save-post").addEventListener("click", () => {
-    const title = document.getElementById("post-title").value;
-    const date = document.getElementById("post-date").value;
-    const content = document.getElementById("post-content").value;
+document.getElementById("save-post").addEventListener("click", async () => {
+    const title = document.getElementById("post-title").value.trim();
+    const date = document.getElementById("post-date").value.trim();
+    const content = document.getElementById("post-content").value.trim();
 
     if (!title || !date || !content) {
         alert("All fields are required!");
         return;
     }
 
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-    const saveBtn = document.getElementById("save-post");
-    const editIndex = saveBtn.dataset.editIndex;
-
-    if (editIndex !== undefined) {
-        // Update existing
-        posts[editIndex] = { title, date, content };
-        alert("Post updated!");
-
-        // Reset button state
-        saveBtn.textContent = "Save Post";
-        delete saveBtn.dataset.editIndex;
-    } else {
-        // Add new
-        posts.unshift({ title, date, content });
-        alert("Post added!");
+    const editId = saveBtn.dataset.editId;
+    try {
+        if (editId) {
+            // update
+            const res = await authFetch('/api/posts/' + editId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, date, content })
+            });
+            if (!res.ok) throw new Error((await res.json()).error || 'Update failed');
+            alert('Post updated');
+            delete saveBtn.dataset.editId;
+            saveBtn.textContent = 'Save Post';
+        } else {
+            // create
+            const res = await authFetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, date, content })
+            });
+            if (!res.ok) throw new Error((await res.json()).error || 'Create failed');
+            alert('Post created');
+        }
+        clearForm();
+        loadPosts();
+    } catch (err) {
+        alert('Error: ' + err.message);
+        console.error(err);
     }
-
-    localStorage.setItem("urbanPosts", JSON.stringify(posts));
-
-    // Clear the form
-    document.getElementById("post-title").value = "";
-    document.getElementById("post-date").value = "";
-    document.getElementById("post-content").value = "";
-
-    loadPosts();
 });
 
-/* ------------------------------- */
-/*          EXPORT POSTS           */
-/* ------------------------------- */
+/* -------------------------------
+   DELETE
+   ------------------------------- */
 
-document.getElementById("export-posts").addEventListener("click", () => {
-    const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+async function deletePost(e) {
+    const id = e.target.dataset.id;
+    if (!confirm('Delete this post?')) return;
 
-    const dataStr = "data:text/json;charset=utf-8," +
-        encodeURIComponent(JSON.stringify(posts, null, 4));
+    try {
+        const res = await authFetch('/api/posts/' + id, { method: 'DELETE' });
+        if (!res.ok) throw new Error((await res.json()).error || 'Delete failed');
+        alert('Deleted');
+        loadPosts();
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
 
-    const dlAnchor = document.createElement("a");
+/* -------------------------------
+   EDIT
+   ------------------------------- */
 
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", "urbanPosts_backup.json");
-    dlAnchor.click();
+async function editPost(e) {
+    const id = e.target.dataset.id;
+    try {
+        const res = await fetch(API_BASE + '/api/posts');
+        const posts = await res.json();
+        const post = posts.find(p => p.id === id);
+        if (!post) { alert('Post not found'); return; }
+
+        document.getElementById("post-title").value = post.title;
+        document.getElementById("post-date").value = post.date;
+        document.getElementById("post-content").value = post.content;
+
+        saveBtn.textContent = 'Update Post';
+        saveBtn.dataset.editId = id;
+    } catch (err) {
+        console.error(err);
+        alert('Error fetching post');
+    }
+}
+
+/* -------------------------------
+   EXPORT (download)
+   ------------------------------- */
+
+document.getElementById("export-posts").addEventListener("click", async () => {
+    try {
+        const res = await authFetch('/api/export');
+        if (!res.ok) throw new Error('Export failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'urbanPosts_backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert('Error exporting: ' + err.message);
+    }
 });
 
-/* ------------------------------- */
-/*          IMPORT POSTS           */
-/* ------------------------------- */
+/* -------------------------------
+   IMPORT (upload file and send to backend)
+   ------------------------------- */
 
-document.getElementById("import-posts").addEventListener("click", () => {
+document.getElementById("import-posts").addEventListener("click", async () => {
     const fileInput = document.getElementById("import-file");
     const status = document.getElementById("import-status");
 
@@ -161,28 +217,47 @@ document.getElementById("import-posts").addEventListener("click", () => {
         return;
     }
 
-    const reader = new FileReader();
+    const file = fileInput.files[0];
+    try {
+        const text = await file.text();
+        const json = JSON.parse(text);
 
-    reader.onload = function (e) {
-        try {
-            const importedPosts = JSON.parse(e.target.result);
+        const res = await authFetch('/api/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(json)
+        });
 
-            if (!Array.isArray(importedPosts)) {
-                throw new Error("Invalid JSON format — must be an array.");
-            }
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || 'Import failed');
 
-            localStorage.setItem("urbanPosts", JSON.stringify(importedPosts));
+        status.textContent = `✔️ Imported ${body.imported} posts.`;
+        status.style.color = '#00cc88';
+        loadPosts();
+    } catch (err) {
+        status.textContent = '❗ Import failed: ' + err.message;
+        status.style.color = '#ff1a1a';
+    }
+});
 
-            status.textContent = "✔️ Import successful! Refresh to see changes.";
-            status.style.color = "#00ff88";
+/* -------------------------------
+   UTILS
+   ------------------------------- */
 
-            loadPosts();
-        } catch (err) {
-            status.textContent = "❗ Import failed: " + err.message;
-            status.style.color = "#ff1a1a";
-        }
-    };
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, s => {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return map[s] || s;
+    });
+}
 
-    reader.readAsText(fileInput.files[0]);
+// On page load: if token present, skip login box
+document.addEventListener('DOMContentLoaded', () => {
+    if (getToken()) {
+        loginBox.style.display = 'none';
+        adminArea.style.display = 'block';
+        loadPosts();
+    }
 });
 
