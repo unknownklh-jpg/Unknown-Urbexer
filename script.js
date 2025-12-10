@@ -37,24 +37,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     container.innerHTML = "";
 
+    // Sort posts by date descending (latest first)
+    posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     posts.forEach(post => {
         if (!post.id) return;
 
         const div = document.createElement("div");
         div.className = "post";
 
-        let firstImageHtml = "";
+        // All images
+        let imagesHTML = "";
         if (post.images && post.images.length > 0) {
-            firstImageHtml = `<img src="${post.images[0]}" alt="Image" class="post-thumb">`;
+            imagesHTML = post.images
+                .map(url => `<img src="${url}" alt="Post image" class="post-thumb">`)
+                .join("");
         }
 
+        // Preview content
         const preview = (post.content || "")
-            .slice(0, 200)
+            .slice(0, 250) // adjust length as needed
             .replace(/\n/g, "<br>")
-            + "...";
+            + (post.content.length > 250 ? "..." : "");
 
         div.innerHTML = `
-            ${firstImageHtml}
+            ${imagesHTML}
             <h2>${escapeHtml(post.title)}</h2>
             <p class="date">${escapeHtml(post.date)}</p>
             <p>${preview}</p>
