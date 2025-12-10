@@ -1,6 +1,6 @@
 // script.js - Public site loads posts from Render backend with fallback to static JSON
-const API_BASE = 'https://unknown-urbexer.onrender.com'; // Your backend
-const FALLBACK_JSON = '/package.json'; // Your fallback file (unchanged)
+const API_BASE = 'https://unknown-urbexer.onrender.com';
+const FALLBACK_JSON = '/package.json';
 
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("public-posts");
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let posts = [];
 
-    // Try loading from backend first
+    // Try backend first
     try {
         const res = await fetch(`${API_BASE}/api/posts`);
         if (!res.ok) throw new Error(`Backend fetch failed: ${res.status}`);
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Display posts
+    // No posts?
     if (!Array.isArray(posts) || posts.length === 0) {
         container.innerHTML = "<p>No posts yet.</p>";
         return;
@@ -38,19 +38,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.innerHTML = "";
 
     posts.forEach(post => {
+        if (!post.id) return;
+
         const div = document.createElement("div");
         div.className = "post";
 
-        // First image thumb (if available)
         let firstImageHtml = "";
         if (post.images && post.images.length > 0) {
-            firstImageHtml = `
-                <img src="${post.images[0]}" alt="Image" class="post-thumb">
-            `;
+            firstImageHtml = `<img src="${post.images[0]}" alt="Image" class="post-thumb">`;
         }
 
-        // Text preview (shortened)
-        const preview = (post.content || "").slice(0, 200).replace(/\n/g, '<br>') + "...";
+        const preview = (post.content || "")
+            .slice(0, 200)
+            .replace(/\n/g, "<br>")
+            + "...";
 
         div.innerHTML = `
             ${firstImageHtml}
@@ -65,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// Utility to escape HTML
+// Escape HTML
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/[&<>"']/g, s => {
