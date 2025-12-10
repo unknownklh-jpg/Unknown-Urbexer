@@ -3,7 +3,14 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors');
+const cors = require("cors");
+
+app.use(cors({
+    origin: [
+        "https://unknownurbexer.blog",
+        "https://unknownklh-jpg.github.io"
+    ]
+}));
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
