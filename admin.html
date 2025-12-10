@@ -5,9 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Panel</title>
     <link rel="stylesheet" href="style.css" />
-
     <style>
-        /* Ensures edit/delete buttons display correctly */
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        header, footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #1e1e1e;
+        }
+        section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+        }
+        textarea {
+            height: 100px;
+        }
+        button {
+            background-color: #e53935;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #d32f2f;
+        }
         .post-list li {
             padding: 10px;
             border-bottom: 1px solid #444;
@@ -16,29 +49,25 @@
             align-items: center;
             color: white;
         }
-
         .post-buttons {
             display: inline-flex;
             gap: 6px;
         }
-
         .post-buttons button {
             padding: 5px 10px;
             cursor: pointer;
         }
-
-        #login-error {
+        #login-error, #import-status {
             color: red;
         }
     </style>
 </head>
 <body>
-
-<header class="header">
+<header>
     <h1>Admin Panel</h1>
 </header>
 
-<section class="posts admin-section">
+<section>
 
     <!-- Login box -->
     <div id="login-box">
@@ -50,34 +79,25 @@
 
     <!-- Admin Area -->
     <div id="admin-area" style="display:none;">
-
         <h2>Add / Edit Post</h2>
         <input id="post-title" placeholder="Post Title" />
-        <input id="post-date" placeholder="Date (e.g. Dec 7 2025)" />
+        <input id="post-date" type="date" />
         <textarea id="post-content" placeholder="Post Content"></textarea>
         <button id="save-post">Save Post</button>
-
-        <br><br>
 
         <h2>Existing Posts</h2>
         <ul id="post-list" class="post-list"></ul>
 
-        <br>
-
         <h2>Backup / Restore</h2>
         <button id="export-posts">Export Posts to JSON</button>
-        <br><br>
-
         <input type="file" id="import-file" accept=".json" />
         <button id="import-posts">Import from JSON</button>
-
         <p id="import-status"></p>
-
     </div>
 
 </section>
 
-<footer class="footer">
+<footer>
     <p>© 2025 Urban Explorer Log</p>
 </footer>
 
