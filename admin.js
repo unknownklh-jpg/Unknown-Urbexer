@@ -1,174 +1,72 @@
-// admin.js
-const API_BASE = 'https://unknown-urbexer.onrender.com'; // Replace with your Render backend URL
-const ADMIN_PASSWORD = 'explore2025'; // Replace with your admin password
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        body { background-color: #121212; color: #fff; font-family: Arial, sans-serif; }
+        header, footer { text-align: center; padding: 10px; background-color: #1e1e1e; }
+        section { max-width: 800px; margin: 20px auto; padding: 20px; background-color: #1e1e1e; border-radius: 8px; }
+        input, textarea, button { width: 100%; margin: 5px 0; padding: 10px; border-radius: 4px; border: none; }
+        textarea { height: 140px; }
+        button { background-color: #e53935; color: white; cursor: pointer; }
+        button:hover { background-color: #d32f2f; }
+        .post-list li { padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .post-buttons { display: inline-flex; gap: 6px; }
+        .post-buttons button { padding: 5px 10px; cursor: pointer; }
+        #login-error, #import-status { color: red; }
+        .small { width: auto; display: inline-block; margin-right: 8px; }
+        #image-preview img { max-width: 120px; margin-right: 8px; margin-top: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Admin Panel</h1>
+</header>
 
-// DOM Elements
-const loginBox = document.getElementById('login-box');
-const loginBtn = document.getElementById('login-btn');
-const loginError = document.getElementById('login-error');
-const adminArea = document.getElementById('admin-area');
+<section>
 
-const postTitle = document.getElementById('post-title');
-const postDate = document.getElementById('post-date');
-const postContent = document.getElementById('post-content');
-const savePostBtn = document.getElementById('save-post');
-const postList = document.getElementById('post-list');
+    <!-- Login box -->
+    <div id="login-box">
+        <h2>Admin Login</h2>
+        <input type="password" id="admin-password" placeholder="Enter password" />
+        <button id="login-btn">Login</button>
+        <p id="login-error"></p>
+    </div>
 
-const exportBtn = document.getElementById('export-posts');
-const importInput = document.getElementById('import-file');
-const importBtn = document.getElementById('import-posts');
-const importStatus = document.getElementById('import-status');
+    <!-- Admin Area -->
+    <div id="admin-area" style="display:none;">
+        <h2>Add / Edit Post</h2>
+        <input id="post-title" placeholder="Post Title" />
+        <input id="post-date" type="date" />
+        <textarea id="post-content" placeholder="Post Content (Markdown allowed)"></textarea>
 
-let posts = [];
-let editingIndex = null; // Track which post is being edited
+        <label class="small">Attach images (optional)</label>
+        <input id="post-images" type="file" accept="image/*" multiple />
+        <div id="image-preview"></div>
 
-// --- Admin Login ---
-loginBtn.addEventListener('click', () => {
-    const pw = document.getElementById('admin-password').value;
-    if (pw === ADMIN_PASSWORD) {
-        loginBox.style.display = 'none';
-        adminArea.style.display = 'block';
-        loadPosts();
-    } else {
-        loginError.textContent = 'Incorrect password.';
-    }
-});
+        <button id="save-post">Save Post</button>
 
-// --- Load posts from backend ---
-async function loadPosts() {
-    try {
-        const res = await fetch(`${API_BASE}/api/posts`);
-        if (!res.ok) throw new Error('Failed to fetch posts from backend');
-        posts = await res.json();
-        renderPostList();
-    } catch (err) {
-        console.error(err);
-        posts = [];
-        renderPostList();
-    }
-}
+        <h2>Existing Posts</h2>
+        <ul id="post-list" class="post-list"></ul>
 
-// --- Render posts in admin ---
-function renderPostList() {
-    postList.innerHTML = '';
-    posts.forEach((post, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span>${post.title} (${post.date})</span>
-            <div class="post-buttons">
-                <button onclick="editPost(${index})">Edit</button>
-                <button onclick="deletePost(${index})">Delete</button>
-            </div>
-        `;
-        postList.appendChild(li);
-    });
-}
+        <h2>Backup / Restore</h2>
+        <button id="export-posts">Export Posts to JSON</button>
+        <input type="file" id="import-file" accept=".json" />
+        <button id="import-posts">Import from JSON</button>
+        <p id="import-status"></p>
 
-// --- Save Post (Add or Edit) ---
-savePostBtn.addEventListener('click', async () => {
-    const title = postTitle.value.trim();
-    const date = postDate.value;
-    const content = postContent.value.trim();
-    if (!title || !content || !date) return alert('Fill all fields.');
+        <button id="logout-btn" style="margin-top:8px;background:#333">Logout</button>
+    </div>
 
-    try {
-        let res;
-        if (editingIndex !== null) {
-            // Update existing post
-            posts[editingIndex] = { title, date, content };
-            res = await fetch(`${API_BASE}/api/posts/update`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ posts })
-            });
-            editingIndex = null;
-        } else {
-            // Add new post
-            res = await fetch(`${API_BASE}/api/posts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, date, content })
-            });
-        }
+</section>
 
-        const data = await res.json();
-        if (data.success) {
-            posts = data.posts;
-            renderPostList();
-            postTitle.value = '';
-            postDate.value = '';
-            postContent.value = '';
-            alert('Post saved!');
-        } else {
-            alert('Failed to save post.');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Error saving post.');
-    }
-});
+<footer>
+    <p>© 2025 Urban Explorer Log</p>
+</footer>
 
-// --- Edit Post ---
-window.editPost = (index) => {
-    const post = posts[index];
-    postTitle.value = post.title;
-    postDate.value = post.date;
-    postContent.value = post.content;
-    editingIndex = index;
-};
-
-// --- Delete Post ---
-window.deletePost = async (index) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
-
-    posts.splice(index, 1); // remove locally
-
-    try {
-        const res = await fetch(`${API_BASE}/api/posts/delete`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ posts })
-        });
-        const data = await res.json();
-        if (data.success) {
-            renderPostList();
-        } else {
-            alert('Failed to delete post.');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Error deleting post.');
-    }
-};
-
-// --- Export posts to JSON ---
-exportBtn.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(posts, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'posts.json';
-    a.click();
-    URL.revokeObjectURL(url);
-});
-
-// --- Import posts from JSON ---
-importBtn.addEventListener('click', () => {
-    const file = importInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-        try {
-            const importedPosts = JSON.parse(reader.result);
-            if (!Array.isArray(importedPosts)) throw new Error('Invalid JSON');
-            posts = importedPosts;
-            renderPostList();
-            importStatus.textContent = 'Posts imported successfully!';
-        } catch (err) {
-            console.error(err);
-            importStatus.textContent = 'Failed to import posts.';
-        }
-    };
-    reader.readAsText(file);
-});
+<script src="admin.js"></script>
+</body>
+</html>
