@@ -1,65 +1,44 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const postContainer = document.getElementById("posts");
+// script.js - public site loads posts from backend
+const API_BASE = ''; // same note: set to full URL if backend on separate host
 
-    // load posts
-    let posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
-
-    // seed first post if none exist
-    if (posts.length === 0) {
-        posts = [
-            {
-                title: "Rolling Thunder, Conway, Arkansas.",
-                date: "Dec 7 2025",
-                content: `
-                   
-                `
-            }
-        ];
-        localStorage.setItem("urbanPosts", JSON.stringify(posts));
-    }
-
-    posts.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-
-        div.innerHTML = `
-            <h2>${post.title}</h2>
-            <p class="post-date">${post.date}</p>
-            <p>${post.content}</p>
-        `;
-
-        postContainer.appendChild(div);
-    });
-});
-
-// Load posts onto the public site
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("public-posts");
-
     if (!container) return;
 
-    const posts = JSON.parse(localStorage.getItem("urbanPosts")) || [];
+    container.innerHTML = 'Loading posts...';
 
-    if (posts.length === 0) {
-        container.innerHTML = "<p>No posts yet.</p>";
-        return;
+    try {
+        const res = await fetch(API_BASE + '/api/posts');
+        if (!res.ok) throw new Error('Failed to fetch posts');
+        const posts = await res.json();
+
+        if (!Array.isArray(posts) || posts.length === 0) {
+            container.innerHTML = "<p>No posts yet.</p>";
+            return;
+        }
+
+        container.innerHTML = "";
+        posts.forEach(post => {
+            const div = document.createElement("div");
+            div.className = "post";
+            div.innerHTML = `
+                <h2>${escapeHtml(post.title)}</h2>
+                <p class="date">${escapeHtml(post.date)}</p>
+                <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+                <hr>
+            `;
+            container.appendChild(div);
+        });
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p>Error loading posts.</p>';
     }
-
-    container.innerHTML = "";
-
-    posts.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-
-        div.innerHTML = `
-            <h2>${post.title}</h2>
-            <p class="date">${post.date}</p>
-            <p>${post.content.replace(/\n/g, "<br>")}</p>
-            <hr>
-        `;
-
-        container.appendChild(div);
-    });
 });
 
-
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, s => {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return map[s] || s;
+    });
+}
