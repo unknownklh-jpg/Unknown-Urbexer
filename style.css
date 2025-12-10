@@ -97,7 +97,20 @@ button:hover {
     list-style: none;
     padding: 0;
 }
+.post-list li {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-buttons button {
+    margin-left: 6px;
+}
+
 
 #post-list li {
     margin: 5px 0;
 }
+
