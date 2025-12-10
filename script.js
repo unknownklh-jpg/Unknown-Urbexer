@@ -1,6 +1,6 @@
-// script.js - public site loads posts from Render backend with fallback to static JSON
-const API_BASE = 'https://unknown-urbexer.onrender.com'; // <-- Replace with your Render backend URL
-const FALLBACK_JSON = '/package.json'; // Static JSON file in your repo
+// script.js - Public site loads posts from Render backend with fallback to static JSON
+const API_BASE = 'https://unknown-urbexer.onrender.com'; // Your backend
+const FALLBACK_JSON = '/package.json'; // Your fallback file (unchanged)
 
 document.addEventListener("DOMContentLoaded", async () => {
     const container = document.getElementById("public-posts");
@@ -10,15 +10,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let posts = [];
 
-    // Try fetching from backend first
+    // Try loading from backend first
     try {
         const res = await fetch(`${API_BASE}/api/posts`);
         if (!res.ok) throw new Error(`Backend fetch failed: ${res.status}`);
         posts = await res.json();
     } catch (err) {
-        console.warn('Render backend failed, falling back to static JSON:', err);
+        console.warn('Backend failed, using fallback JSON:', err);
 
-        // Fallback to local JSON
         try {
             const resFallback = await fetch(FALLBACK_JSON);
             if (!resFallback.ok) throw new Error(`Fallback fetch failed: ${resFallback.status}`);
@@ -37,15 +36,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     container.innerHTML = "";
+
     posts.forEach(post => {
         const div = document.createElement("div");
         div.className = "post";
+
+        // First image thumb (if available)
+        let firstImageHtml = "";
+        if (post.images && post.images.length > 0) {
+            firstImageHtml = `
+                <img src="${post.images[0]}" alt="Image" class="post-thumb">
+            `;
+        }
+
+        // Text preview (shortened)
+        const preview = (post.content || "").slice(0, 200).replace(/\n/g, '<br>') + "...";
+
         div.innerHTML = `
+            ${firstImageHtml}
             <h2>${escapeHtml(post.title)}</h2>
             <p class="date">${escapeHtml(post.date)}</p>
-            <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+            <p>${preview}</p>
+            <a href="post.html?id=${post.id}" class="read-more">Read More →</a>
             <hr>
         `;
+
         container.appendChild(div);
     });
 });
