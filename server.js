@@ -7,26 +7,19 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
 const POSTS_FILE = path.join(__dirname, "posts.json");
+const ALBUM_DIR = path.join(__dirname, "albums");
 
-const app = express();
+app.use(cors({ origin: "*", methods: ["GET","POST","PUT","DELETE"], credentials: true }));
+app.use(express.json());
+app.use("/albums", express.static(ALBUM_DIR));
 
-// CORS for your frontend domains
-app.use(cors({
-  origin: [
-    "https://unknownurbexer.blog",
-    "https://unkn0wn.cyb3r.br4t", 
-    "http://localhost:3000"
-  ],
-  credentials: true
-}));
+const upload = multer({ dest: path.join(ALBUM_DIR) });
 
-app.use(express.json({ limit: "10mb" }));
-
-// File for storing posts
 function readPosts() {
   if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, "[]");
   return JSON.parse(fs.readFileSync(POSTS_FILE, "utf8"));
@@ -36,7 +29,7 @@ function writePosts(posts) {
   fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2));
 }
 
-// Auth
+// --- AUTH ---
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
   if (!password || password !== ADMIN_PASSWORD) {
@@ -47,9 +40,9 @@ app.post("/api/login", (req, res) => {
 });
 
 function authMiddleware(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: "No token" });
-  const token = auth.split(" ")[1];
+  const header = req.headers.authorization;
+  if (!header) return res.status(401).json({ error: "Missing token" });
+  const token = header.split(" ")[1];
   try {
     jwt.verify(token, JWT_SECRET);
     next();
@@ -58,18 +51,22 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// CRUD
+// --- POSTS ---
 app.get("/api/posts", (req, res) => {
   res.json(readPosts());
 });
 
-app.post("/api/posts", authMiddleware, multer().none(), (req, res) => {
-  const { title, date, content } = req.body;
-  if (!title || !date || !content) {
-    return res.status(400).json({ error: "Missing fields" });
-  }
+app.post("/api/posts", authMiddleware, (req, res) => {
+  const { title, date, content, images } = req.body;
   const posts = readPosts();
-  const newPost = { id: uuidv4(), title, date, content, images: [] };
+  const newPost = {
+    id: uuidv4(),
+    title,
+    date,
+    content,
+    images: images || [],
+    createdAt: Date.now()
+  };
   posts.unshift(newPost);
   writePosts(posts);
   res.json({ success: true, post: newPost });
@@ -77,22 +74,38 @@ app.post("/api/posts", authMiddleware, multer().none(), (req, res) => {
 
 app.put("/api/posts/:id", authMiddleware, (req, res) => {
   const { id } = req.params;
-  const { title, date, content } = req.body;
   const posts = readPosts();
   const idx = posts.findIndex(p => p.id === id);
   if (idx === -1) return res.status(404).json({ error: "Not found" });
-  posts[idx] = { ...posts[idx], title, date, content };
+  posts[idx] = { ...posts[idx], ...req.body };
   writePosts(posts);
   res.json({ success: true });
 });
 
 app.delete("/api/posts/:id", authMiddleware, (req, res) => {
-  const { id } = req.params;
-  const posts = readPosts().filter(p => p.id !== id);
+  const posts = readPosts().filter(p => p.id !== req.params.id);
   writePosts(posts);
   res.json({ success: true });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
+// --- IMAGE UPLOAD ---
+app.post("/api/upload", authMiddleware, upload.array("images"), (req, res) => {
+  const files = req.files.map(f => ({
+    filename: f.filename,
+    url: `/albums/${f.filename}`
+  }));
+  res.json({ success: true, files });
 });
+
+// --- BACKUP / RESTORE ---
+app.get("/api/backup", authMiddleware, (req, res) => {
+  res.download(POSTS_FILE);
+});
+
+app.post("/api/restore", authMiddleware, (req, res) => {
+  if (!Array.isArray(req.body)) return res.status(400).json({ error: "Body must be array" });
+  writePosts(req.body);
+  res.json({ success: true });
+});
+
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
