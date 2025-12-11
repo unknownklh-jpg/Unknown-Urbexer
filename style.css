@@ -77,3 +77,62 @@ footer {
   border-top: 1px solid #ff0033;
   background: #111;
 }
+/* Admin styles */
+.admin-section {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.admin-section h2 {
+  color: #ff0033;
+  margin-top: 40px;
+}
+
+input, textarea, button {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px;
+  font-size: 1rem;
+  background: #111;
+  color: #fff;
+  border: 1px solid #ff007f;
+  border-radius: 6px;
+}
+
+button {
+  background: #ff007f;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+button:hover {
+  background: #ff0033;
+  color: #fff;
+}
+
+.post-list {
+  list-style: none;
+  padding: 0;
+}
+
+.post-list li {
+  background: #111;
+  border-left: 3px solid #ff0033;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-buttons button {
+  margin-left: 8px;
+  background: #222;
+  color: #ff007f;
+  border: 1px solid #ff007f;
+}
+
