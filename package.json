@@ -1,7 +1,6 @@
-{ 
-"name": "urban-explorer-backend",
+{
+  "name": "urbexer-backend",
   "version": "1.0.0",
-  "description": "Urban Explorer Log backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -15,4 +14,3 @@
     "uuid": "^9.0.0"
   }
 }
-
