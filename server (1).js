@@ -3,7 +3,6 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
@@ -15,10 +14,10 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'explore2025';
 const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
 const POSTS_FILE = path.join(__dirname, 'posts.json');
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
-const GITHUB_OWNER = process.env.GITHUB_OWNER || '';
-const GITHUB_REPO = process.env.GITHUB_REPO || '';
-let GITHUB_BRANCH = process.env.GITHUB_BRANCH || '';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '12345';
+const GITHUB_OWNER = process.env.GITHUB_OWNER || 'unknownklh-jpg';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'unknown-urbexer';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 
 const app = express();
 
@@ -40,9 +39,49 @@ if (GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO) {
   octokit = new Octokit({ auth: GITHUB_TOKEN });
 }
 
+// Utility functions
 function readPosts() {
   if (!fs.existsSync(POSTS_FILE)) {
     fs.writeFileSync(POSTS_FILE, JSON.stringify([]), 'utf8');
   }
   return JSON.parse(fs.readFileSync(POSTS_FILE, 'utf8') || "[]");
 }
+
+function writePosts(posts) {
+  fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2), 'utf8');
+}
+
+// Optional GitHub commit
+async function saveToGitHub(post) {
+  if (!octokit) return;
+
+  const slug = slugify(post.title || 'untitled', { lower: true });
+  const filePath = `_posts/${Date.now()}-${slug}.md`;
+  const content = Buffer.from(`# ${post.title}\n\n${post.date}\n\n${post.content}`).toString('base64');
+
+  try {
+    await octokit.repos.createOrUpdateFileContents({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: filePath,
+      message: `Add blog post: ${post.title}`,
+      content,
+      branch: GITHUB_BRANCH,
+    });
+    console.log(`✅ Committed to GitHub: ${filePath}`);
+  } catch (err) {
+    console.error("GitHub commit error:", err.message);
+  }
+}
+
+// Routes
+app.get('/api/posts', (req, res) => {
+  try {
+    const posts = readPosts();
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load posts' });
+  }
+});
+
+app.post('/api/posts'
