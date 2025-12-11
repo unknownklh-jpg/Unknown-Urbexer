@@ -1,5 +1,5 @@
 const API_BASE = 'https://unknown-urbexer.onrender.com';
-const FALLBACK_JSON = '/package.json';
+const FALLBACK_JSON = '/posts.json';
 
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("public-posts");
@@ -71,3 +71,4 @@ function escapeHtml(str) {
     return map[s] || s;
   });
 }
+
