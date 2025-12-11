@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Post</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>Urban Explorer Log</h1>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="admin.html">Admin</a>
+    <a href="https://instagram.com/unkn0wn.cyb3r.br4t" target="_blank">@unkn0wn.cyb3r.br4t</a>
+  </div>
+</header>
+
+<section class="single-post-container" id="all-posts">
+  <p>Loading post...</p>
+</section>
+
+<script>
+const API_BASE = "https://unknown-urbexer.onrender.com";
+
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, s => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[s]);
+}
+
+async function loadOne() {
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) {
+    document.getElementById("all-posts").innerHTML = "<p>No ID provided.</p>";
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/posts`);
+    const posts = await res.json();
+    const post = posts.find(p => p.id === id);
+    if (!post) document.getElementById("all-posts").innerHTML = "<p>Not found.</p>";
+    else {
+      document.getElementById("all-posts").innerHTML = `
+        <div class="single-post">
+          <h2>${escapeHtml(post.title)}</h2>
+          <p class="date">${escapeHtml(post.date)}</p>
+          <p>${escapeHtml(post.content).replace(/\n/g,"<br>")}</p>
+          <a href="index.html" class="back-link">← Back</a>
+        </div>
+      `;
+    }
+  } catch {
+    document.getElementById("all-posts").innerHTML = "<p>Error loading.</p>";
+  }
+}
+
+window.addEventListener("DOMContentLoaded", loadOne);
+</script>
+
+</body>
+</html>
