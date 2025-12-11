@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Admin | Urban Explorer</title>
+  <title>Admin — Unknown Urbexer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,23 +11,31 @@
   <h1>Admin Panel</h1>
 </header>
 
-<section>
-  <div id="login-box">
-    <h2>Admin Login</h2>
-    <input type="password" id="admin-password" placeholder="Enter password">
-    <button id="login-btn">Login</button>
-    <p id="login-error"></p>
-  </div>
+<div id="login-box">
+  <input type="password" id="admin-password" placeholder="Password">
+  <button id="login-btn">Login</button>
+  <p id="login-error"></p>
+</div>
 
-  <div id="admin-area" style="display:none;">
-    <input id="post-title" placeholder="Title">
-    <input id="post-date" type="date">
-    <textarea id="post-content" placeholder="Content"></textarea>
-    <button id="save-post">Save</button>
-    <ul id="post-list"></ul>
-    <button id="logout-btn">Logout</button>
-  </div>
-</section>
+<div id="admin-area" style="display:none;">
+  <h2>Create Post</h2>
+  <input id="post-title" placeholder="Title">
+  <input id="post-date" type="date">
+  <textarea id="post-content" placeholder="Content..."></textarea>
+
+  <h3>Upload Images</h3>
+  <input type="file" id="images" multiple>
+  <button id="upload-btn">Upload</button>
+
+  <h3>Existing Posts</h3>
+  <ul class="post-list" id="post-list"></ul>
+
+  <button id="backup-btn">Backup JSON</button>
+  <button id="restore-btn">Restore JSON</button>
+  <input type="file" id="restore-file">
+
+  <button id="logout-btn">Logout</button>
+</div>
 
 <script src="admin.js"></script>
 </body>
