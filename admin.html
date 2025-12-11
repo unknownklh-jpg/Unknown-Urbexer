@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin | Urban Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <h1>Admin Panel</h1>
+</header>
+
+<section>
+  <div id="login-box">
+    <h2>Admin Login</h2>
+    <input type="password" id="admin-password" placeholder="Enter password">
+    <button id="login-btn">Login</button>
+    <p id="login-error"></p>
+  </div>
+
+  <div id="admin-area" style="display:none;">
+    <input id="post-title" placeholder="Title">
+    <input id="post-date" type="date">
+    <textarea id="post-content" placeholder="Content"></textarea>
+    <button id="save-post">Save</button>
+    <ul id="post-list"></ul>
+    <button id="logout-btn">Logout</button>
+  </div>
+</section>
+
+<script src="admin.js"></script>
+</body>
+</html>
