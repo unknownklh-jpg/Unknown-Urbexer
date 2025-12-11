@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  background-color: #000;
+  color: #e60012;
+  font-family: 'Courier New', monospace;
+}
+
+.header {
+  text-align: center;
+  padding: 20px;
+}
+
+.header a {
+  color: #e60012;
+  text-decoration: none;
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+.header a:hover {
+  text-shadow: 0 0 10px #e60012;
+}
+
+.posts, .single-post-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.post, .single-post {
+  background: #111;
+  padding: 20px;
+  border-left: 4px solid #e60012;
+  box-shadow: 0 0 12px rgba(230, 0, 18, 0.4);
+  margin-bottom: 30px;
+}
+
+.post h2, .single-post h2 {
+  margin-top: 0;
+  color: #ff1a1a;
+}
+
+.date {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+.read-more, .back-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #e60012;
+  text-decoration: none;
+}
