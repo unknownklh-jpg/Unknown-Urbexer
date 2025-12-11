@@ -12,6 +12,19 @@
 </header>
 
 <section>
+  <button onclick="testLogin()">Quick Test Login</button>
+<script>
+async function testLogin() {
+  const res = await fetch("https://unknown-urbexer.onrender.com/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: "explore2025" })  // replace with your real password
+  });
+  const data = await res.json();
+  console.log(data);
+}
+</script>
+
   <div id="login-box">
     <h2>Admin Login</h2>
     <input type="password" id="admin-password" placeholder="Enter password" />
@@ -52,3 +65,4 @@
 <script src="admin.js"></script>
 </body>
 </html>
+
