@@ -1,116 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Posts</title>
-    <link rel="stylesheet" href="style.css">
-
-    <style>
-        .single-post-container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .single-post {
-            background: #111;
-            padding: 20px;
-            border-left: 4px solid #e60012;
-            box-shadow: 0 0 12px rgba(230, 0, 18, 0.4);
-            margin-bottom: 40px;
-        }
-
-        .single-post h1, .single-post h2 {
-            color: #ff1a1a;
-            margin-top: 0;
-        }
-
-        .single-post .date {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 15px;
-        }
-
-        .post-images img {
-            width: 100%;
-            margin: 18px 0;
-            border: 2px solid #e60012;
-            border-radius: 4px;
-            box-shadow: 0 0 10px rgba(230, 0, 18, 0.4);
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #e60012;
-            text-decoration: none;
-            font-size: 1.1rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Posts</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .single-post-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .single-post {
+      background: #111;
+      padding: 20px;
+      border-left: 4px solid #e60012;
+      box-shadow: 0 0 12px rgba(230, 0, 18, 0.4);
+      margin-bottom: 40px;
+    }
+    .single-post h1, .single-post h2 {
+      color: #ff1a1a;
+      margin-top: 0;
+    }
+    .single-post .date {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      margin-bottom: 15px;
+    }
+    .post-images img {
+      width: 100%;
+      margin: 18px 0;
+      border: 2px solid #e60012;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(230, 0, 18, 0.4);
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #e60012;
+      text-decoration: none;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
-
 <body>
 
 <header class="header">
-    <h1><a href="index.html" style="color:#e60012; text-decoration:none;">Urban Explorer Log</a></h1>
+  <h1><a href="index.html" style="color:#e60012; text-decoration:none;">Urban Explorer Log</a></h1>
 </header>
 
 <section class="single-post-container" id="all-posts">
-    <p style="color:#e60012;">Loading posts...</p>
+  <p style="color:#e60012;">Loading posts...</p>
 </section>
 
 <footer class="footer">
-    <p>© 2025 Urban Explorer Log</p>
+  <p>© 2025 Urban Explorer Log</p>
 </footer>
 
 <script>
 const API_BASE = "https://unknown-urbexer.onrender.com";
 
 async function loadPosts() {
-    const container = document.getElementById("all-posts");
+  const container = document.getElementById("all-posts");
 
-    try {
-        const res = await fetch(`${API_BASE}/api/posts`);
-        if (!res.ok) throw new Error('Failed to fetch posts');
-        const posts = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/posts`);
+    if (!res.ok) throw new Error('Failed to fetch posts');
+    const posts = await res.json();
 
-        if (!posts || posts.length === 0) {
-            container.innerHTML = "<p>No posts available.</p>";
-            return;
-        }
-
-        container.innerHTML = ""; // clear loading text
-
-        posts.forEach(post => {
-            let imagesHTML = "";
-            if (post.images && post.images.length > 0) {
-                imagesHTML = post.images.map(url => `<img src="${url}" alt="">`).join("");
-            }
-
-            const postHTML = `
-                <div class="single-post">
-                    <h2>${escapeHtml(post.title)}</h2>
-                    <p class="date">${escapeHtml(post.date)}</p>
-                    <p>${escapeHtml(post.content).replace(/\n/g, "<br>")}</p>
-                    <div class="post-images">${imagesHTML}</div>
-                    <a href="post.html?id=${post.id}" class="back-link">Read More →</a>
-                </div>
-            `;
-            container.innerHTML += postHTML;
-        });
-    } catch (err) {
-        console.error(err);
-        container.innerHTML = "<p>Error loading posts.</p>";
+    if (!posts || posts.length === 0) {
+      container.innerHTML = "<p>No posts available.</p>";
+      return;
     }
+
+    container.innerHTML = "";
+
+    posts.forEach(post => {
+      let imagesHTML = "";
+      if (post.images && post.images.length > 0) {
+        imagesHTML = post.images.map(url => `<img src="${url}" alt="">`).join("");
+      }
+
+      const postHTML = `
+        <div class="single-post">
+          <h2>${escapeHtml(post.title)}</h2>
+          <p class="date">${escapeHtml(post.date)}</p>
+          <p>${escapeHtml(post.content).replace(/\n/g, "<br>")}</p>
+          <div class="post-images">${imagesHTML}</div>
+          <a href="post.html?id=${post.id}" class="back-link">Read More →</a>
+        </div>
+      `;
+      container.innerHTML += postHTML;
+    });
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p>Error loading posts.</p>";
+  }
 }
 
 function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, s => {
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-        return map[s] || s;
-    });
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, s => {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return map[s] || s;
+  });
 }
 
 document.addEventListener('DOMContentLoaded', loadPosts);
