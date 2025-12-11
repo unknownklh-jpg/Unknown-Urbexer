@@ -1,41 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin — Unknown Urbexer</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
 <header class="header">
-  <h1>Admin Panel</h1>
+  <h1>Urban Explorer Log - Admin</h1>
 </header>
 
-<div id="login-box">
-  <input type="password" id="admin-password" placeholder="Password">
-  <button id="login-btn">Login</button>
-  <p id="login-error"></p>
-</div>
+<section class="admin-section">
+  <div id="login-box">
+    <h2>Login</h2>
+    <input type="password" id="admin-password" placeholder="Enter Password"/>
+    <button id="login-btn">Login</button>
+    <p id="login-error"></p>
+  </div>
 
-<div id="admin-area" style="display:none;">
-  <h2>Create Post</h2>
-  <input id="post-title" placeholder="Title">
-  <input id="post-date" type="date">
-  <textarea id="post-content" placeholder="Content..."></textarea>
+  <div id="admin-area" style="display: none;">
+    <h2>Create / Edit Post</h2>
+    <input id="post-title" placeholder="Title" />
+    <input id="post-date" type="date" />
+    <textarea id="post-content" placeholder="Content (Markdown allowed)"></textarea>
+    <input type="file" id="post-images" accept="image/*" multiple />
+    <button id="save-post">Save Post</button>
 
-  <h3>Upload Images</h3>
-  <input type="file" id="images" multiple>
-  <button id="upload-btn">Upload</button>
+    <h2>All Posts</h2>
+    <ul id="post-list" class="post-list"></ul>
 
-  <h3>Existing Posts</h3>
-  <ul class="post-list" id="post-list"></ul>
+    <h2>Backup / Restore</h2>
+    <button id="export-posts">Export JSON</button>
+    <input type="file" id="import-file" accept=".json" />
+    <button id="import-posts">Import JSON</button>
+    <p id="import-status"></p>
 
-  <button id="backup-btn">Backup JSON</button>
-  <button id="restore-btn">Restore JSON</button>
-  <input type="file" id="restore-file">
+    <button id="logout-btn" style="margin-top: 16px;">Logout</button>
+  </div>
+</section>
 
-  <button id="logout-btn">Logout</button>
-</div>
+<footer>
+  Unknown Urbexer
+</footer>
 
 <script src="admin.js"></script>
 </body>
