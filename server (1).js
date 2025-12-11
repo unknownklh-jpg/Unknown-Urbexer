@@ -41,4 +41,8 @@ if (GITHUB_TOKEN && GITHUB_OWNER && GITHUB_REPO) {
 }
 
 function readPosts() {
-  if (!fs.existsSync(POSTS_FI_
+  if (!fs.existsSync(POSTS_FILE)) {
+    fs.writeFileSync(POSTS_FILE, JSON.stringify([]), 'utf8');
+  }
+  return JSON.parse(fs.readFileSync(POSTS_FILE, 'utf8') || "[]");
+}
