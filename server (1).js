@@ -84,4 +84,34 @@ app.get('/api/posts', (req, res) => {
   }
 });
 
-app.post('/api/posts'
+app.post('/api/posts', upload.none(), async (req, res) => {
+  try {
+    const { title, date, content } = req.body;
+    if (!title || !date || !content) {
+      return res.status(400).json({ error: 'Missing fields' });
+    }
+
+    const posts = readPosts();
+    const newPost = {
+      id: uuidv4(),
+      title,
+      date,
+      content,
+      images: [],
+      createdAt: Date.now()
+    };
+
+    posts.unshift(newPost);
+    writePosts(posts);
+
+    await saveToGitHub(newPost); // optional
+
+    res.status(201).json({ success: true, post: newPost });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create post' });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
