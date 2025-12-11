@@ -1,0 +1,79 @@
+/* Global Styles */
+body {
+  background: #000;
+  color: #ff007f;
+  font-family: 'Courier New', monospace;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header Styles */
+.header {
+  background: #111;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 3px solid #ff007f;
+}
+
+.header h1 {
+  color: #ff0033;
+  text-shadow: 0 0 10px #ff007f;
+  margin: 0;
+}
+
+.header a {
+  margin: 0 12px;
+  color: #ff007f;
+  text-decoration: none;
+  font-weight: bold;
+  text-shadow: 0 0 6px #ff007f;
+}
+
+.header a:hover {
+  color: #fff;
+}
+
+/* Post Section */
+.posts {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.post {
+  background: #111;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-left: 4px solid #ff0033;
+  box-shadow: 0 0 12px rgba(255, 0, 85, 0.5);
+}
+
+.post h2 {
+  margin-top: 0;
+  color: #ff0033;
+}
+
+.post .date {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-bottom: 10px;
+}
+
+/* Image Styling */
+.post img {
+  max-width: 100%;
+  border: 2px solid #ff007f;
+  border-radius: 4px;
+  margin-top: 12px;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.1rem;
+  color: #ff007f;
+  border-top: 1px solid #ff0033;
+  background: #111;
+}
