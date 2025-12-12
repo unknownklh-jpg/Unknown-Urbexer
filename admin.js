@@ -5,6 +5,7 @@ const supabase = window.supabase || createClient(
 );
 
 document.addEventListener("DOMContentLoaded", () => {
+
   function showLogin() {
     document.getElementById("login-box").style.display = "block";
     document.getElementById("admin-area").style.display = "none";
@@ -66,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showLogin();
   });
 
-  // ✅ JSON Import handler moved OUTSIDE logout function
   document.getElementById("import-posts").addEventListener("click", async () => {
     const fileInput = document.getElementById("import-file");
     const status = document.getElementById("import-status");
@@ -98,10 +98,10 @@ document.addEventListener("DOMContentLoaded", () => {
         status.textContent = "Import successful! ✅";
         loadPosts();
       }
-
     } catch (err) {
       console.error("Parse error:", err);
       status.textContent = "Error reading file: " + err.message;
     }
   });
+
 });
