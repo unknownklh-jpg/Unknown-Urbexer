@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const supabase = window.supabaseClient;
+  const supabase = window.supabase; // ✅ Fix: use correct global Supabase client
 
-  if (!supabase) {
-    console.error("❌ Supabase client not initialized");
+  if (!supabase || typeof supabase.from !== "function") {
+    console.error("❌ Supabase client not initialized or invalid");
     return;
   }
 
@@ -110,6 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Show login form by default on load
+  // Load login form by default
   showLogin();
 });
