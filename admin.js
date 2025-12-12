@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // ✅ Ensure Supabase client is initialized
   const supabase = window.supabaseClient;
 
   if (!supabase || typeof supabase.from !== "function") {
@@ -6,17 +7,20 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // 🔐 Show login screen
   function showLogin() {
     document.getElementById("login-box").style.display = "block";
     document.getElementById("admin-area").style.display = "none";
   }
 
+  // 🔓 Show admin panel
   function showAdmin() {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-area").style.display = "block";
     loadPosts();
   }
 
+  // 🔑 Login handler
   document.getElementById("login-btn").addEventListener("click", () => {
     const pw = document.getElementById("admin-password").value;
     if (pw === "Gummybear35!!") {
@@ -26,10 +30,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // 🔐 Logout handler
   document.getElementById("logout-btn").addEventListener("click", () => {
     showLogin();
   });
 
+  // 📥 Load all posts
   async function loadPosts() {
     const list = document.getElementById("post-list");
     list.innerHTML = "<li>Loading...</li>";
@@ -67,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 💾 Save a new post
   document.getElementById("save-post").addEventListener("click", async () => {
     const title = document.getElementById("post-title").value;
     const date = document.getElementById("post-date").value;
@@ -86,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // 📂 Import posts from a JSON file
   document.getElementById("import-posts").addEventListener("click", async () => {
     const fileInput = document.getElementById("import-file");
     const status = document.getElementById("import-status");
@@ -102,27 +110,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!Array.isArray(posts)) throw new Error("JSON must be an array");
 
-      const validPosts = posts.filter(p => p.title && p.date && p.content);
-
-      if (!validPosts.length) {
-        status.textContent = "No valid posts found.";
-        return;
-      }
-
-      const { error } = await supabase.from("posts").insert(validPosts);
-      if (error) {
-        console.error("Import error:", error);
-        status.textContent = "Import failed: " + error.message;
-      } else {
-        status.textContent = "Import successful! ✅";
-        loadPosts();
-      }
-
-    } catch (err) {
-      console.error("Parse error:", err);
-      status.textContent = "Error reading file: " + err.message;
-    }
-  });
-
-  showLogin(); // Initialize login view
-});
+      const validPosts = posts.filter(p => p.title && p.date && p
