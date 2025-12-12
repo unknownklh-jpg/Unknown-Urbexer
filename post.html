@@ -9,6 +9,7 @@
 
 <header class="header">
   <h1>Urban Explorer Log</h1>
+  <a href="index.html">Home</a>
   <a href="admin.html">Admin</a>
 </header>
 
@@ -20,39 +21,37 @@
   Unknown Urbexer
 </footer>
 
+<!-- Supabase + Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script>
-  const supabase = createClient('https://nshevzhuytsftonlgfum.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok');
+  const supabase = supabase.createClient(
+    'https://nshevzhuytsftonlgfum.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
+  );
 
   async function loadOne() {
     const id = new URLSearchParams(location.search).get("id");
     const container = document.getElementById("all-posts");
 
-    const { data: posts, error } = await supabase.from("posts").select("*");
-    const post = posts.find(p => p.id === id);
+    if (!id) {
+      container.innerHTML = "<p>Post ID not found.</p>";
+      return;
+    }
 
-    if (!post) {
-      container.innerHTML = "<p>Not found</p>";
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) {
+      container.innerHTML = "<p>Post not found or error loading post.</p>";
+      console.error("Supabase error:", error);
       return;
     }
 
     container.innerHTML = `
       <div class="single-post">
-        <h2>${escapeHtml(post.title)}</h2>
-        <p class="date">${escapeHtml(post.date)}</p>
-        <p>${escapeHtml(post.content).replace(/\n/g, "<br>")}</p>
-      </div>
-      <a href="index.html" class="back-link">← Back</a>
-    `;
-  }
-
-  function escapeHtml(str) {
-    return String(str || "").replace(/[&<>"']/g, m => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    })[m]);
-  }
-
-  window.addEventListener("DOMContentLoaded", loadOne);
-</script>
-</body>
-</html>
+        <h2>${escapeHtml(data.tit
