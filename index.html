@@ -81,21 +81,55 @@
   <a href="https://instagram.com/unkn0wn.cyb3r.br4t" target="_blank">@unkn0wn.cyb3r.br4t</a>
 </header>
 
-<section class="posts" id="public-posts">
+<section class="posts" id="post-container">
   <p>Loading...</p>
 </section>
 
 <footer>
   Unknown Urbexer
 </footer>
+
+<!-- Supabase & Markdown Support -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script>
-  const supabase = createClient(
+  const supabase = supabase.createClient(
     'https://nshevzhuytsftonlgfum.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
   );
+
+  async function loadPosts() {
+    const { data: posts, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("date", { ascending: false });
+
+    const container = document.getElementById("post-container");
+    container.innerHTML = "";
+
+    if (error) {
+      container.innerHTML = "<p>Error loading posts</p>";
+      console.error("❌ Supabase error:", error);
+      return;
+    }
+
+    posts.forEach(post => {
+      const div = document.createElement("div");
+      div.className = "post";
+
+      div.innerHTML = `
+        <h2>${post.title}</h2>
+        <p class="date">${post.date}</p>
+        <div>${marked.parse(post.content)}</div>
+      `;
+
+      container.appendChild(div);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadPosts);
 </script>
 
-<script src="script.js"></script>
 </body>
 </html>
