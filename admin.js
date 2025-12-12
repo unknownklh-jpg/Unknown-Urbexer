@@ -1,5 +1,3 @@
-// Supabase setup (reuse the supabase variable from <script> block in HTML)
-
 function showLogin() {
   document.getElementById("login-box").style.display = "block";
   document.getElementById("admin-area").style.display = "none";
@@ -11,10 +9,9 @@ function showAdmin() {
   loadPosts();
 }
 
-// Simulated admin password check (client-side, not secure!)
 document.getElementById("login-btn").addEventListener("click", () => {
   const pw = document.getElementById("admin-password").value;
-  if (pw === "youradminpassword") { // 🔁 replace with your secret
+  if (pw === "youradminpassword") {
     showAdmin();
   } else {
     document.getElementById("login-error").textContent = "Invalid password";
