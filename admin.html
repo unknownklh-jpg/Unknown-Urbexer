@@ -24,17 +24,10 @@
     <input id="post-title" placeholder="Title" />
     <input id="post-date" type="date" />
     <textarea id="post-content" placeholder="Content (Markdown allowed)"></textarea>
-    <input type="file" id="post-images" accept="image/*" multiple />
     <button id="save-post">Save Post</button>
 
     <h2>All Posts</h2>
     <ul id="post-list" class="post-list"></ul>
-
-    <h2>Backup / Restore</h2>
-    <button id="export-posts">Export JSON</button>
-    <input type="file" id="import-file" accept=".json" />
-    <button id="import-posts">Import JSON</button>
-    <p id="import-status"></p>
 
     <button id="logout-btn" style="margin-top: 16px;">Logout</button>
   </div>
@@ -44,14 +37,11 @@
   Unknown Urbexer
 </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase & Admin JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const supabase = createClient(
-    'https://nshevzhuytsftonlgfum.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
-  );
+  const supabase = createClient('https://YOUR-PROJECT.supabase.co', 'YOUR-ANON-KEY');
 </script>
-
 <script src="admin.js"></script>
 </body>
 </html>
