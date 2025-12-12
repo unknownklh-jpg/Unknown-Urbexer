@@ -57,4 +57,44 @@ document.getElementById("save-post").addEventListener("click", async () => {
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   showLogin();
+
+  document.getElementById("import-posts").addEventListener("click", async () => {
+  const fileInput = document.getElementById("import-file");
+  const status = document.getElementById("import-status");
+
+  if (!fileInput.files.length) {
+    status.textContent = "Please select a JSON file first.";
+    return;
+  }
+
+  const file = fileInput.files[0];
+  try {
+    const text = await file.text();
+    const posts = JSON.parse(text);
+
+    // Basic validation
+    if (!Array.isArray(posts)) throw new Error("JSON must be an array");
+
+    const validPosts = posts.filter(p => p.title && p.date && p.content);
+
+    if (!validPosts.length) {
+      status.textContent = "No valid posts found.";
+      return;
+    }
+
+    const { error } = await supabase.from("posts").insert(validPosts);
+    if (error) {
+      console.error("Import error:", error);
+      status.textContent = "Import failed: " + error.message;
+    } else {
+      status.textContent = "Import successful! ✅";
+      loadPosts();
+    }
+
+  } catch (err) {
+    console.error("Parse error:", err);
+    status.textContent = "Error reading file: " + err.message;
+  }
+});
+
 });
