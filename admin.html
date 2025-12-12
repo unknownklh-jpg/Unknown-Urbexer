@@ -43,18 +43,18 @@
   Unknown Urbexer
 </footer>
 
-<!-- ✅ Load Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ✅ Supabase SDK for browser UMD -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
 <!-- ✅ Initialize Supabase Client -->
 <script>
-  window.supabase = supabase.createClient(
+  window.supabase = window.supabase.createClient(
     'https://nshevzhuytsftonlgfum.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
   );
 </script>
 
-<!-- ✅ Admin JS (must come last) -->
+<!-- ✅ Admin Logic -->
 <script src="admin.js"></script>
 
 </body>
