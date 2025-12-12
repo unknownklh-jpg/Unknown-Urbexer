@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const supabase = window.supabase;
+  const supabase = window.supabaseClient;
+
+  if (!supabase) {
+    console.error("❌ Supabase client not initialized");
+    return;
+  }
 
   function showLogin() {
     document.getElementById("login-box").style.display = "block";
@@ -21,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    showLogin();
+  });
+
   async function loadPosts() {
     const { data: posts, error } = await supabase
       .from("posts")
@@ -32,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (error) {
       list.innerHTML = "<li>Error loading posts</li>";
+      console.error(error);
       return;
     }
 
@@ -54,12 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const date = document.getElementById("post-date").value;
     const content = document.getElementById("post-content").value;
 
-    await supabase.from("posts").insert([{ title, date, content }]);
-    loadPosts();
-  });
-
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    showLogin();
+    const { error } = await supabase.from("posts").insert([{ title, date, content }]);
+    if (error) {
+      console.error("Save failed:", error);
+    } else {
+      loadPosts();
+    }
   });
 
   document.getElementById("import-posts").addEventListener("click", async () => {
@@ -100,4 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Show login form by default on load
+  showLogin();
 });
