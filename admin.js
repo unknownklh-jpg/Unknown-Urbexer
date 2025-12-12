@@ -1,10 +1,5 @@
-// ✅ Supabase client must be defined FIRST
-const supabase = window.supabase || createClient(
-  'https://nshevzhuytsftonlgfum.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
-);
-
 document.addEventListener("DOMContentLoaded", () => {
+  const supabase = window.supabase;
 
   function showLogin() {
     document.getElementById("login-box").style.display = "block";
@@ -98,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
         status.textContent = "Import successful! ✅";
         loadPosts();
       }
+
     } catch (err) {
       console.error("Parse error:", err);
       status.textContent = "Error reading file: " + err.message;
