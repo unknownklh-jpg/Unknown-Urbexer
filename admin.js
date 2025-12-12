@@ -11,7 +11,7 @@ function showAdmin() {
 
 document.getElementById("login-btn").addEventListener("click", () => {
   const pw = document.getElementById("admin-password").value;
-  if (pw === "youradminpassword") {
+  if (pw === "Gummybear35!!") {
     showAdmin();
   } else {
     document.getElementById("login-error").textContent = "Invalid password";
