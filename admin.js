@@ -1,92 +1,63 @@
-const API_BASE = "https://unknown-urbexer.onrender.com";
-let token = localStorage.getItem("admin_token") || null;
-
-function authHeaders() {
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+// Supabase setup (reuse the supabase variable from <script> block in HTML)
 
 function showLogin() {
-  document.getElementById("login-box").style.display="block";
-  document.getElementById("admin-area").style.display="none";
+  document.getElementById("login-box").style.display = "block";
+  document.getElementById("admin-area").style.display = "none";
 }
 
 function showAdmin() {
-  document.getElementById("login-box").style.display="none";
-  document.getElementById("admin-area").style.display="block";
+  document.getElementById("login-box").style.display = "none";
+  document.getElementById("admin-area").style.display = "block";
   loadPosts();
 }
 
-document.getElementById("login-btn").addEventListener("click", async ()=>{
+// Simulated admin password check (client-side, not secure!)
+document.getElementById("login-btn").addEventListener("click", () => {
   const pw = document.getElementById("admin-password").value;
-  const res = await fetch(`${API_BASE}/api/login`, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({password:pw})
-  });
-  const data=await res.json();
-  if(res.ok){ token=data.token; localStorage.setItem("admin_token",token); showAdmin(); }
-  else document.getElementById("login-error").textContent=data.error;
+  if (pw === "youradminpassword") { // 🔁 replace with your secret
+    showAdmin();
+  } else {
+    document.getElementById("login-error").textContent = "Invalid password";
+  }
 });
 
-// LOAD POSTS
 async function loadPosts() {
-  const res=await fetch(`${API_BASE}/api/posts`);
-  const posts=await res.json();
-  document.getElementById("post-list").innerHTML="";
-  posts.forEach(p=>{
-    const li=document.createElement("li");
-    li.textContent=`${p.title} — ${p.date}`;
-    const del=document.createElement("button");
-    del.textContent="Delete"; del.onclick=async()=>{
-      await fetch(`${API_BASE}/api/posts/${p.id}`,{method:"DELETE",headers:authHeaders()});
+  const { data: posts, error } = await supabase
+    .from("posts")
+    .select("*")
+    .order("date", { ascending: false });
+
+  const list = document.getElementById("post-list");
+  list.innerHTML = "";
+
+  if (error) {
+    list.innerHTML = "<li>Error loading posts</li>";
+    return;
+  }
+
+  posts.forEach(p => {
+    const li = document.createElement("li");
+    li.textContent = `${p.title} — ${p.date}`;
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.onclick = async () => {
+      await supabase.from("posts").delete().eq("id", p.id);
       loadPosts();
     };
     li.appendChild(del);
-    document.getElementById("post-list").appendChild(li);
+    list.appendChild(li);
   });
 }
 
-// SAVE POST
-document.getElementById("upload-btn").addEventListener("click", async()=>{
-  const files=document.getElementById("images").files;
-  const form=new FormData();
-  for(let f of files) form.append("images",f);
-  const up=await fetch(`${API_BASE}/api/upload`, {method:"POST",headers: authHeaders(), body: form});
-  const data=await up.json();
-  alert("Uploaded images: "+data.files.map(x=>x.filename).join(", "));
-});
+document.getElementById("save-post").addEventListener("click", async () => {
+  const title = document.getElementById("post-title").value;
+  const date = document.getElementById("post-date").value;
+  const content = document.getElementById("post-content").value;
 
-document.getElementById("save-post").addEventListener("click", async()=>{
-  const title=document.getElementById("post-title").value;
-  const date=document.getElementById("post-date").value;
-  const content=document.getElementById("post-content").value;
-  await fetch(`${API_BASE}/api/posts`, {
-    method:"POST",headers: {...authHeaders(),"Content-Type":"application/json"},
-    body: JSON.stringify({title,date,content,images:[]})
-  });
+  await supabase.from("posts").insert([{ title, date, content }]);
   loadPosts();
 });
 
-// BACKUP
-document.getElementById("backup-btn").addEventListener("click", ()=>{
-  window.location=`${API_BASE}/api/backup`;
-});
-
-// RESTORE
-document.getElementById("restore-btn").addEventListener("click", async()=>{
-  const f=document.getElementById("restore-file").files[0];
-  const text=await f.text();
-  const parsed=JSON.parse(text);
-  await fetch(`${API_BASE}/api/restore`, {
-    method:"POST", headers:{...authHeaders(),"Content-Type":"application/json"},
-    body: JSON.stringify(parsed)
-  });
-  loadPosts();
-});
-
-// LOGOUT
-document.getElementById("logout-btn").addEventListener("click", ()=>{
-  localStorage.removeItem("admin_token");
-  token=null;
+document.getElementById("logout-btn").addEventListener("click", () => {
   showLogin();
 });
