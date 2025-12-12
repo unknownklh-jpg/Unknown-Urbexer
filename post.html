@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Single Post</title>
@@ -21,25 +21,31 @@
   Unknown Urbexer
 </footer>
 
-<!-- Supabase + Markdown -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase UMD -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-  const supabase = supabase.createClient(
+  // Initialize Supabase (UMD)
+  const supabase = window.supabase.createClient(
     'https://nshevzhuytsftonlgfum.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zaGV2emh1eXRzZnRvbmxnZnVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MzMxMjgsImV4cCI6MjA4MTEwOTEyOH0.ttZ6VNDJFCL1wmZ7zQknu3g4YP2r2nvnUdr2H4yQ7ok'
   );
 
   async function loadOne() {
-    const id = new URLSearchParams(location.search).get("id");
     const container = document.getElementById("all-posts");
+    container.innerHTML = "<p>Loading post...</p>";
+
+    // Get the post ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
 
     if (!id) {
-      container.innerHTML = "<p>Post ID not found.</p>";
+      container.innerHTML = "<p>Post ID missing!</p>";
       return;
     }
 
+    // Fetch only the matching post
     const { data, error } = await supabase
       .from("posts")
       .select("*")
@@ -47,11 +53,32 @@
       .single();
 
     if (error || !data) {
-      container.innerHTML = "<p>Post not found or error loading post.</p>";
-      console.error("Supabase error:", error);
+      console.error("Error loading post:", error);
+      container.innerHTML = "<p>Post not found or cannot load.</p>";
       return;
     }
 
+    // Render the post
     container.innerHTML = `
       <div class="single-post">
-        <h2>${escapeHtml(data.tit
+        <h2>${escapeHtml(data.title)}</h2>
+        <p class="date">${escapeHtml(data.date)}</p>
+        <div>${marked.parse(data.content)}</div>
+      </div>
+      <a href="index.html" class="back-link">← Back</a>
+    `;
+  }
+
+  // Safe HTML escape
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/[&<>"']/g,
+        m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])
+      );
+  }
+
+  window.addEventListener("DOMContentLoaded", loadOne);
+</script>
+
+</body>
+</html>
