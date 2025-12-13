@@ -110,5 +110,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!Array.isArray(posts)) throw new Error("JSON must be an array");
 
-  const validPosts = posts.filter(p => p.title && p.date && p.content);
+        const validPosts = posts.filter(p => p.title && p.date && p.content);
+
+      if (!validPosts.length) {
+        status.textContent = "No valid posts found.";
+        return;
+      }
+
+      const { error } = await supabase.from("posts").insert(validPosts);
+      if (error) {
+        console.error("Import error:", error);
+        status.textContent = "Import failed: " + error.message;
+      } else {
+        status.textContent = "Import successful! ✅";
+        loadPosts();
+      }
+
+    } catch (err) {
+      console.error("Parse error:", err);
+      status.textContent = "Error reading file: " + err.message;
+    }
+  });
+
+  // 👁️ Show login form by default
+  showLogin();
+});
 
