@@ -110,4 +110,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!Array.isArray(posts)) throw new Error("JSON must be an array");
 
-      const validPosts = posts.filter(p => p.title && p.date && p
+  const validPosts = posts.filter(p => p.title && p.date && p.content);
+
