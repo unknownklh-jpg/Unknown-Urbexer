@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ Ensure Supabase client is initialized
-  const supabase = window.supabaseClient;
+  const supabase = window.supabase;
 
   if (!supabase || typeof supabase.from !== "function") {
     console.error("❌ Supabase client not initialized or invalid");
