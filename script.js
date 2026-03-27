@@ -1,12 +1,12 @@
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// 1️⃣ Initialize Supabase
+//
 const supabaseUrl = 'https://YOUR_PROJECT_REF.supabase.co';
 const supabaseKey = 'YOUR_PUBLIC_ANON_KEY'; // usually anon public key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 2️⃣ Wait for DOM
+//
 document.addEventListener("DOMContentLoaded", loadPosts);
 
 async function loadPosts() {
